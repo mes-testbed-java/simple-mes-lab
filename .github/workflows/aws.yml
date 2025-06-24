@@ -1,78 +1,71 @@
 # This workflow will build and push a new container image to Amazon ECR,
 # and then will deploy a new task definition to Amazon ECS, when there is a push to the "main" branch.
-#
+# 이 워크플로우는 'main' 브랜치에 푸시될 때 Amazon ECR에 이미지를 빌드 및 푸시하고,
+# Amazon ECS에 새로운 태스크 정의로 배포합니다.
+
 # To use this workflow, you will need to complete the following set-up steps:
-#
+# 이 워크플로우를 사용하기 전에 다음과 같은 설정이 필요합니다:
+
 # 1. Create an ECR repository to store your images.
-#    For example: `aws ecr create-repository --repository-name my-ecr-repo --region us-east-2`.
-#    Replace the value of the `ECR_REPOSITORY` environment variable in the workflow below with your repository's name.
-#    Replace the value of the `AWS_REGION` environment variable in the workflow below with your repository's region.
-#
-# 2. Create an ECS task definition, an ECS cluster, and an ECS service.
-#    For example, follow the Getting Started guide on the ECS console:
-#      https://us-east-2.console.aws.amazon.com/ecs/home?region=us-east-2#/firstRun
-#    Replace the value of the `ECS_SERVICE` environment variable in the workflow below with the name you set for the Amazon ECS service.
-#    Replace the value of the `ECS_CLUSTER` environment variable in the workflow below with the name you set for the cluster.
-#
-# 3. Store your ECS task definition as a JSON file in your repository.
-#    The format should follow the output of `aws ecs register-task-definition --generate-cli-skeleton`.
-#    Replace the value of the `ECS_TASK_DEFINITION` environment variable in the workflow below with the path to the JSON file.
-#    Replace the value of the `CONTAINER_NAME` environment variable in the workflow below with the name of the container
-#    in the `containerDefinitions` section of the task definition.
-#
-# 4. Store an IAM user access key in GitHub Actions secrets named `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
-#    See the documentation for each action used below for the recommended IAM policies for this IAM user,
-#    and best practices on handling the access key credentials.
+#    예: `aws ecr create-repository --repository-name my-ecr-repo --region ap-northeast-2`
+#    아래 workflow 파일의 `ECR_REPOSITORY`, `AWS_REGION` 값을 위 명령어에 맞게 변경하세요.
+
+# 2. Create an ECS task definition, cluster, and service.
+#    예: ECS 콘솔의 Getting Started 가이드 활용
+#    https://ap-northeast-2.console.aws.amazon.com/ecs/home?region=ap-northeast-2#/firstRun
+
+# 3. ECS 태스크 정의를 JSON 파일로 저장해두세요.
+#    예: `aws ecs register-task-definition --generate-cli-skeleton` 형식으로 출력된 JSON 파일
+#    `ECS_TASK_DEFINITION`과 `CONTAINER_NAME` 값을 해당 JSON에 맞게 설정하세요.
+
+# 4. GitHub Actions 비밀 변수로 IAM 사용자 키를 저장하세요.
+#    AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY 라는 이름으로 저장합니다.
 
 name: Deploy to Amazon ECS
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" ] # main 브랜치에 변경이 있을 때만 실행
 
 env:
-  AWS_REGION: MY_AWS_REGION                   # set this to your preferred AWS region, e.g. us-west-1
-  ECR_REPOSITORY: MY_ECR_REPOSITORY           # set this to your Amazon ECR repository name
-  ECS_SERVICE: MY_ECS_SERVICE                 # set this to your Amazon ECS service name
-  ECS_CLUSTER: MY_ECS_CLUSTER                 # set this to your Amazon ECS cluster name
-  ECS_TASK_DEFINITION: MY_ECS_TASK_DEFINITION # set this to the path to your Amazon ECS task definition
-                                               # file, e.g. .aws/task-definition.json
-  CONTAINER_NAME: MY_CONTAINER_NAME           # set this to the name of the container in the
-                                               # containerDefinitions section of your task definition
+  AWS_REGION: ap-northeast-2                  # 실제 사용하는 AWS 리전 (예: 서울 리전)
+  ECR_REPOSITORY: my-ecr-repo                 # 실제 Amazon ECR 리포지토리 이름
+  ECS_SERVICE: my-ecs-service                 # 실제 ECS 서비스 이름
+  ECS_CLUSTER: my-ecs-cluster                 # 실제 ECS 클러스터 이름
+  ECS_TASK_DEFINITION: .aws/task-definition.json # ECS 태스크 정의 JSON 파일 경로
+  CONTAINER_NAME: my-container                # 태스크 정의 내 컨테이너 이름
 
 permissions:
-  contents: read
+  contents: read # 코드 리포지토리 읽기 권한
 
 jobs:
   deploy:
     name: Deploy
-    runs-on: ubuntu-latest
-    environment: production
+    runs-on: ubuntu-latest # GitHub Actions에서 제공하는 최신 Ubuntu 환경 사용
+    environment: production # 환경명을 production으로 설정
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4 # GitHub 레포지토리의 코드를 체크아웃
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }} # GitHub Secrets에서 불러오기
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Login to Amazon ECR
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+      uses: aws-actions/amazon-ecr-login@v1 # ECR 로그인
 
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ github.sha }}
+        IMAGE_TAG: ${{ github.sha }} # 커밋 해시를 이미지 태그로 사용
       run: |
-        # Build a docker container and
-        # push it to ECR so that it can
-        # be deployed to ECS.
+        # Docker 이미지를 빌드하고 ECR에 푸시합니다
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
@@ -83,7 +76,7 @@ jobs:
       with:
         task-definition: ${{ env.ECS_TASK_DEFINITION }}
         container-name: ${{ env.CONTAINER_NAME }}
-        image: ${{ steps.build-image.outputs.image }}
+        image: ${{ steps.build-image.outputs.image }} # 새 이미지로 태스크 정의 업데이트
 
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
@@ -91,4 +84,4 @@ jobs:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
         service: ${{ env.ECS_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
-        wait-for-service-stability: true
+        wait-for-service-stability: true # 서비스가 안정될 때까지 대기
