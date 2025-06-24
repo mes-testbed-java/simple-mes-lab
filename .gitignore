@@ -1,0 +1,48 @@
+# 💡 Java 빌드 파일
+*.class
+*.jar
+*.war
+*.ear
+
+# 💡 IDE 관련 파일 (Eclipse, IntelliJ 등)
+.idea/
+*.iml
+*.ipr
+*.iws
+*.log
+*.swp
+.project
+.classpath
+.settings/
+
+# 💡 OS별 임시 파일
+.DS_Store
+Thumbs.db
+
+# 💡 Maven 타겟 디렉터리
+/target/
+
+# 💡 개발용 설정 파일 (STS, Eclipse)
+.springBeans
+
+# 💡 빌드 도구 wrapper
+/mvnw
+/mvnw.cmd
+/.mvn/
+
+# 💡 환경/개인 설정 파일
+*.env
+*.bak
+*.tmp
+*.old
+
+# 💡 로그 및 임시 파일
+/logs/
+*.log
+
+# 💡 외부 자원 캐시
+/.idea/
+**/.classpath
+**/.project
+**/.settings/
+**/.vscode/
