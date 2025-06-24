@@ -1,0 +1,75 @@
+<!--
+  📄 dashboard.html 구성 요약 (MES 대시보드)
+
+  1. <h1> - 대시보드 제목
+     → 서버에서 전달한 'title' 값을 표시 (예: MES 대시보드)
+
+  2. <p id="clock"> - 실시간 시계 출력
+     → JavaScript로 500ms마다 갱신되는 현재 시간을 보여줌
+     → 사용자 지역 설정을 반영한 날짜/시간 포맷 사용
+
+  3. <script src="/js/clock.js"> - 외부 시계 스크립트
+     → updateClock() 함수를 통해 0.5초마다 시간 업데이트
+     → DOM이 렌더링된 뒤 안정적으로 실행되도록 <body> 하단에 위치
+
+  💡 유지보수 및 확장 팁:
+     - clock.js 외에도 필요한 UI 로직은 static/js/ 하위에 정리 가능
+     - 향후 작업 테이블, 버튼 기능도 분리 및 주석 구조 유지 추천
+-->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${title}">MES Dashboard</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; margin: 2em; background: #f4f4f4; }
+    h1 { color: #2e6da4; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+    th, td { border: 1px solid #ddd; padding: 0.8em; text-align: center; }
+    th { background-color: #4CAF50; color: white; }
+    button { padding: 0.6em 1.2em; background: #2196F3; color: white; border: none; cursor: pointer; margin-top: 1em; }
+    button:hover { background: #0b7dda; }
+  </style>
+</head>
+<body>
+  <h1 th:text="${title}">MES 대시보드</h1>
+  
+  <p style="color: gray;">
+     🕒 현재 시간: <span id="clock">-</span>
+   </p>
+
+  
+  
+  <table>
+    <thead>
+      <tr>
+        <th>작업 ID</th>
+        <th>공정</th>
+        <th>상태</th>
+        <th>시작 시간</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>OP-001</td>
+        <td>조립</td>
+        <td style="color: green;">진행 중</td>
+        <td>2025-06-24 17:30</td>
+      </tr>
+      <tr>
+        <td>OP-002</td>
+        <td>검사</td>
+        <td style="color: orange;">대기</td>
+        <td>-</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <button onclick="alert('새 작업을 등록합니다')">신규 작업 등록</button>
+  
+  <!-- 시계 스크립트 포함 -->
+    <script src="/js/clock.js"></script>
+	
+</body>
+</html>
